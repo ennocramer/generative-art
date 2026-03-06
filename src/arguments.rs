@@ -1,5 +1,5 @@
-use clap::Parser;
-use nannou::color::Rgb8;
+use clap::{Parser, Subcommand};
+use nannou::{color::Rgb8, prelude::deg_to_rad};
 use palette;
 use std::error::Error;
 use std::path::PathBuf;
@@ -21,6 +21,35 @@ pub struct Arguments {
 
     #[arg(long, value_parser=parse_color, default_value="lightblue")]
     pub foreground: Rgb8,
+
+    #[command(subcommand)]
+    pub command: Command,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum Command {
+    LSystem(LSystemArguments),
+}
+
+#[derive(Parser, Debug)]
+pub struct LSystemArguments {
+    #[arg(short, long)]
+    pub axiom: String,
+
+    #[arg(short, long="rule", value_name="S=PRODUCTION", value_parser=parse_key_val::<char, String>)]
+    pub rules: Vec<(char, String)>,
+
+    #[arg(short, long, default_value_t = false)]
+    pub terminals: bool,
+
+    #[arg(short, long, value_parser=parse_length, default_value="10")]
+    pub length: (f32, f32),
+
+    #[arg(short, long, value_parser=parse_angles, default_value="45º")]
+    pub angles: (f32, f32),
+
+    #[arg(short, long, default_value_t = 4)]
+    pub depth: u32,
 }
 
 fn parse_color(s: &str) -> Result<Rgb8, Box<dyn Error + Send + Sync + 'static>> {
@@ -33,6 +62,47 @@ fn parse_color(s: &str) -> Result<Rgb8, Box<dyn Error + Send + Sync + 'static>> 
     // to move between palette::Rgb objects from different library
     // versions.
     Ok(Rgb8::from_components(rgb.into_components()))
+}
+
+fn parse_length(s: &str) -> Result<(f32, f32), Box<dyn Error + Send + Sync + 'static>> {
+    if let Some((l, r)) = s.split_once(",") {
+        return Ok((l.parse()?, r.parse()?));
+    }
+
+    Ok((s.parse()?, 1.0))
+}
+
+fn parse_angle(s: &str) -> Result<f32, Box<dyn Error + Send + Sync + 'static>> {
+    if let Some(degrees) = s.strip_suffix('º') {
+        return Ok(deg_to_rad(degrees.parse()?));
+    }
+
+    if let Some(degrees) = s.strip_suffix("deg") {
+        return Ok(deg_to_rad(degrees.trim().parse()?));
+    }
+
+    Ok(s.parse()?)
+}
+
+fn parse_angles(s: &str) -> Result<(f32, f32), Box<dyn Error + Send + Sync + 'static>> {
+    if let Some((l, r)) = s.split_once(",") {
+        return Ok((parse_angle(l)?, parse_angle(r)?));
+    }
+
+    let angle = parse_angle(s)?;
+    Ok((-angle, angle))
+}
+
+fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
+where
+    T: std::str::FromStr,
+    T::Err: Error + Send + Sync + 'static,
+    U: std::str::FromStr,
+    U::Err: Error + Send + Sync + 'static,
+{
+    let pos = s.find('=').ok_or("no `=` found")?;
+
+    Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
 
 pub fn parse() -> Arguments {
