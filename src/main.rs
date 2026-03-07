@@ -1,5 +1,6 @@
 mod arguments;
 mod lsystem;
+mod pieces;
 
 use self::arguments::*;
 use self::lsystem::*;
@@ -23,6 +24,11 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
 
     match &arguments.command {
         Command::LSystem(ls_arguments) => view_lsystem(app, arguments, ls_arguments, frame),
+        Command::Piece(piece_arguments) => {
+            if piece_arguments.title == "koch" {
+                pieces::koch::view(app, arguments, frame)
+            }
+        }
     }
 }
 

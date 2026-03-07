@@ -29,6 +29,7 @@ pub struct Arguments {
 #[derive(Subcommand, Debug)]
 pub enum Command {
     LSystem(LSystemArguments),
+    Piece(PieceArguments),
 }
 
 #[derive(Parser, Debug)]
@@ -50,6 +51,11 @@ pub struct LSystemArguments {
 
     #[arg(short, long, default_value_t = 4)]
     pub depth: u32,
+}
+
+#[derive(Parser, Debug)]
+pub struct PieceArguments {
+    pub title: String,
 }
 
 fn parse_color(s: &str) -> Result<Rgb8, Box<dyn Error + Send + Sync + 'static>> {
