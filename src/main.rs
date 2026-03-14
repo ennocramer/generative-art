@@ -27,6 +27,8 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
         Command::Piece(piece_arguments) => {
             if piece_arguments.title == "koch" {
                 pieces::koch::view(app, arguments, frame)
+            } else if piece_arguments.title == "noise" {
+                pieces::noise::view(app, arguments, frame)
             }
         }
     }
