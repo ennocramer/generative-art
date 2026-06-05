@@ -34,6 +34,7 @@ pub struct Arguments {
 pub enum Command {
     LSystem(LSystemArguments),
     Piece(PieceArguments),
+    Gallery(GalleryArguments),
 }
 
 #[derive(Parser, Debug)]
@@ -88,6 +89,14 @@ pub struct PieceArguments {
     pub piece: Piece,
 }
 
+#[derive(Parser, Debug)]
+pub struct GalleryArguments {
+    pub path: PathBuf,
+
+    #[arg(short, long, value_parser=parse_resolution, default_value="512x512")]
+    pub resolution: (u32, u32),
+}
+
 fn parse_color(s: &str) -> Result<Rgb8, Box<dyn Error + Send + Sync + 'static>> {
     let rgb = palette::named::from_str(s)
         .ok_or(())
@@ -127,6 +136,12 @@ fn parse_angles(s: &str) -> Result<(f32, f32), Box<dyn Error + Send + Sync + 'st
 
     let angle = parse_angle(s)?;
     Ok((-angle, angle))
+}
+
+fn parse_resolution(s: &str) -> Result<(u32, u32), Box<dyn Error + Send + Sync + 'static>> {
+    let pos = s.find('x').ok_or("no `x` found")?;
+
+    Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
 
 fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>

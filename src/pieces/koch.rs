@@ -4,7 +4,7 @@ use crate::arguments::Arguments;
 use crate::lsystem::*;
 
 pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
-    let angle = deg_to_rad(70.0) * (app.time * 2.0 * PI / 30.0).sin();
+    let angle = deg_to_rad(70.0) * (app.time / 30.0 * 2.0 * PI + PI / 2.0).sin();
 
     {
         let lsystem = LSystem::new()

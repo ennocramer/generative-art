@@ -8,8 +8,17 @@ use nannou::prelude::*;
 
 fn model(app: &App) -> Arguments {
     let args = arguments::parse();
+
     app.main_window()
         .set_title(",.*' memfr0b '*.,_,.*' generative art '*.,");
+
+    if let Command::Gallery(gallery_arguments) = &args.command {
+        std::fs::create_dir_all(&gallery_arguments.path)
+            .expect("failed to create gallery directory");
+        render_gallery(app, &args, gallery_arguments);
+        app.quit()
+    }
+
     args
 }
 
@@ -28,8 +37,9 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
     match &arguments.command {
         Command::LSystem(ls_arguments) => view_lsystem(arguments, &draw, window, ls_arguments),
         Command::Piece(piece_arguments) => {
-            (piece_arguments.piece.function)(app, arguments, &draw, window);
+            (piece_arguments.piece.function)(app, arguments, &draw, window)
         }
+        Command::Gallery(_) => unreachable!(),
     }
 
     draw.to_frame(app, &frame).unwrap()
@@ -56,6 +66,62 @@ fn view_lsystem(arguments: &Arguments, draw: &Draw, window: Rect, ls_arguments: 
             .start(from)
             .end(to);
     });
+}
+
+fn render_gallery(app: &App, arguments: &Arguments, gallery_arguments: &GalleryArguments) {
+    let window = app.main_window();
+    let device = window.device();
+
+    // Create a texture to use as render target.
+    let texture = wgpu::TextureBuilder::new()
+        .size(gallery_arguments.resolution.into())
+        .usage(wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING)
+        .sample_count(window.msaa_samples())
+        .format(wgpu::TextureFormat::Rgba16Float)
+        .build(device);
+
+    // And a renderer for the texture.
+    let mut renderer = nannou::draw::RendererBuilder::new()
+        .build_from_texture_descriptor(device, texture.descriptor());
+
+    // And a capturer to retrieve texture data from the GPU.
+    let capturer = wgpu::TextureCapturer::default();
+
+    for piece in &pieces::ALL_PIECES {
+        let draw = nannou::Draw::new();
+        let [w, h] = texture.size();
+        let rect = geom::Rect::from_w_h(w as f32, h as f32).pad(20.0);
+
+        // Draw the piece to nannou's Draw abstraction.
+        draw.background().color(arguments.background);
+        (piece.function)(app, arguments, &draw, rect);
+
+        // Encode the draw commands.
+        let mut encoder = device.create_command_encoder(&Default::default());
+        renderer.render_to_texture(device, &mut encoder, &draw, &texture);
+
+        // Register a function for capturing the texture data at the end of the command stream.
+        let path = gallery_arguments
+            .path
+            .join(piece.title)
+            .with_extension("png");
+        capturer
+            .capture(device, &mut encoder, &texture)
+            .read(move |result| {
+                result
+                    .expect("failed to map texture memory")
+                    .to_owned()
+                    .save(&path)
+                    .expect("failed to save texture to png image");
+            })
+            .unwrap();
+
+        // Submit the encoded draw commands to the GPU
+        window.queue().submit(Some(encoder.finish()));
+    }
+
+    // Wait for all capture function to finish.
+    capturer.await_active_snapshots(device).unwrap();
 }
 
 fn main() {
