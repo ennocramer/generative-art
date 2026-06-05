@@ -1,8 +1,12 @@
-use clap::{Parser, Subcommand};
-use nannou::{color::Rgb8, prelude::deg_to_rad};
-use palette;
+use core::fmt::Write;
 use std::error::Error;
 use std::path::PathBuf;
+
+use clap::builder::StyledStr;
+use clap::{Parser, Subcommand};
+use nannou::{color::Rgb8, prelude::deg_to_rad};
+
+use crate::pieces::{ALL_PIECES, Piece};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -53,9 +57,35 @@ pub struct LSystemArguments {
     pub depth: u32,
 }
 
+fn all_pieces() -> StyledStr {
+    let styles = clap::builder::Styles::styled();
+    let mut text = StyledStr::new();
+    writeln!(
+        text,
+        "{}Pieces:{}",
+        styles.get_header().render(),
+        styles.get_header().render_reset()
+    )
+    .unwrap();
+    ALL_PIECES.iter().for_each(|piece| {
+        writeln!(
+            text,
+            "  * {}{}{} - {}",
+            styles.get_literal().render(),
+            piece.title,
+            styles.get_literal().render_reset(),
+            piece.description
+        )
+        .unwrap();
+    });
+    text
+}
+
 #[derive(Parser, Debug)]
+#[command(after_help=all_pieces())]
 pub struct PieceArguments {
-    pub title: String,
+    #[arg(value_parser=parse_piece)]
+    pub piece: Piece,
 }
 
 fn parse_color(s: &str) -> Result<Rgb8, Box<dyn Error + Send + Sync + 'static>> {
@@ -109,6 +139,11 @@ where
     let pos = s.find('=').ok_or("no `=` found")?;
 
     Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
+}
+
+fn parse_piece(s: &str) -> Result<Piece, Box<dyn Error + Send + Sync + 'static>> {
+    let piece = ALL_PIECES.iter().find(|piece| piece.title == s);
+    Ok(piece.ok_or("Unknown piece")?.clone())
 }
 
 pub fn parse() -> Arguments {

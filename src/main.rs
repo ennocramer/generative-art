@@ -24,13 +24,7 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
 
     match &arguments.command {
         Command::LSystem(ls_arguments) => view_lsystem(app, arguments, ls_arguments, frame),
-        Command::Piece(piece_arguments) => {
-            if piece_arguments.title == "koch" {
-                pieces::koch::view(app, arguments, frame)
-            } else if piece_arguments.title == "noise" {
-                pieces::noise::view(app, arguments, frame)
-            }
-        }
+        Command::Piece(piece_arguments) => (piece_arguments.piece.function)(app, arguments, frame),
     }
 }
 
