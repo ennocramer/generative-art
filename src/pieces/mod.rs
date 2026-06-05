@@ -7,7 +7,12 @@ pub mod squares;
 pub struct Piece {
     pub title: &'static str,
     pub description: &'static str,
-    pub function: fn(&nannou::App, &crate::arguments::Arguments, nannou::Frame),
+    pub function: fn(
+        app: &nannou::App,
+        arguments: &crate::arguments::Arguments,
+        draw: &nannou::Draw,
+        window: nannou::geom::Rect,
+    ),
 }
 
 pub static ALL_PIECES: [Piece; 4] = [

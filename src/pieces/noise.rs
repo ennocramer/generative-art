@@ -5,12 +5,9 @@ use noise::{Fbm, NoiseFn, OpenSimplex, Perlin, SuperSimplex, Worley};
 
 use crate::arguments::Arguments;
 
-pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
-    let window = app.window_rect();
+pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
     let w = window.w() as u32;
     let h = window.h() as u32;
-
-    let draw = app.draw();
 
     let mut image = RgbImage::new(w, h);
 
@@ -66,7 +63,6 @@ pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
             .align_text_bottom()
             .right_justify();
     }
-    draw.to_frame(app, &frame).unwrap()
 }
 
 fn render_noise<N>(

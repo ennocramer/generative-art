@@ -22,15 +22,20 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
 
     frame.clear(arguments.background);
 
+    let draw = app.draw();
+    let window = app.window_rect().pad(20.0);
+
     match &arguments.command {
-        Command::LSystem(ls_arguments) => view_lsystem(app, arguments, ls_arguments, frame),
-        Command::Piece(piece_arguments) => (piece_arguments.piece.function)(app, arguments, frame),
+        Command::LSystem(ls_arguments) => view_lsystem(arguments, &draw, window, ls_arguments),
+        Command::Piece(piece_arguments) => {
+            (piece_arguments.piece.function)(app, arguments, &draw, window);
+        }
     }
+
+    draw.to_frame(app, &frame).unwrap()
 }
 
-fn view_lsystem(app: &App, arguments: &Arguments, ls_arguments: &LSystemArguments, frame: Frame) {
-    let window = app.window_rect();
-
+fn view_lsystem(arguments: &Arguments, draw: &Draw, window: Rect, ls_arguments: &LSystemArguments) {
     let lsystem = LSystem::new()
         .axiom(&ls_arguments.axiom)
         .rules(&ls_arguments.rules)
@@ -39,9 +44,9 @@ fn view_lsystem(app: &App, arguments: &Arguments, ls_arguments: &LSystemArgument
         .rotation(ls_arguments.angles.0, ls_arguments.angles.1);
 
     let drawing = lsystem.measure(ls_arguments.depth);
-    let scale = (window.wh() / drawing.wh()).min_element() * 0.9;
+    let scale = (window.wh() / drawing.wh()).min_element();
 
-    let d = app.draw().scale(scale).xy(-drawing.xy());
+    let d = draw.scale(scale).xy(-drawing.xy());
 
     lsystem.generate(ls_arguments.depth, |from, to, _| {
         d.line()
@@ -51,8 +56,6 @@ fn view_lsystem(app: &App, arguments: &Arguments, ls_arguments: &LSystemArgument
             .start(from)
             .end(to);
     });
-
-    d.to_frame(app, &frame).unwrap()
 }
 
 fn main() {

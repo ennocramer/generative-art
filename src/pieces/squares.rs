@@ -4,8 +4,7 @@ use noise::{NoiseFn, SuperSimplex};
 
 use crate::arguments::Arguments;
 
-pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
-    let window = app.window_rect().pad(20.0);
+pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
     let target = window.wh().min_element() / 25.0;
     let num_rects = (window.wh() / target).as_i32();
     let square_size = window.wh() / num_rects.as_f32();
@@ -21,8 +20,6 @@ pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
         c2.hue += 180.0;
         Gradient::new([c1, c2])
     };
-
-    let d = app.draw();
 
     for i in 0..num_rects[0] {
         for j in 0..num_rects[1] {
@@ -45,15 +42,13 @@ pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
                     )
                 });
 
-            d.polyline()
+            draw.polyline()
                 .caps_round()
                 .weight(line_width)
                 .color(color)
                 .points_closed(corners);
         }
     }
-
-    d.to_frame(app, &frame).unwrap()
 }
 
 fn perturb<N>(noise: &N, time: f32, scale: f32, intensity: f32, vertex: Vec2) -> Vec2

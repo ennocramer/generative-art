@@ -3,10 +3,8 @@ use nannou::prelude::*;
 use crate::arguments::Arguments;
 use crate::lsystem::*;
 
-pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
+pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
     let angle = deg_to_rad(70.0) * (app.time * 2.0 * PI / 30.0).sin();
-
-    let window = app.window_rect();
 
     {
         let lsystem = LSystem::new()
@@ -19,8 +17,7 @@ pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
         let depth = 4;
         let drawing = lsystem.measure(depth);
 
-        let d = app
-            .draw()
+        let d = draw
             .scale((window.wh() / drawing.wh()).min_element() * 0.9)
             .xy(-drawing.xy());
 
@@ -32,7 +29,5 @@ pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
                 .start(from)
                 .end(to);
         });
-
-        d.to_frame(app, &frame).unwrap()
     }
 }

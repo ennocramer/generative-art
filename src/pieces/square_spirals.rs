@@ -5,15 +5,9 @@ use nannou::rand::rand::{RngCore, SeedableRng, rngs::SmallRng};
 
 use crate::arguments::Arguments;
 
-pub fn view(app: &App, arguments: &Arguments, frame: Frame) {
-    let d = app.draw();
-
-    let window = app.window_rect().pad(20.0);
-
+pub fn view(_app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
     let mut rng = SmallRng::seed_from_u64(arguments.seed as u64);
-    subdivide(&d, arguments, &mut rng, 1, window);
-
-    d.to_frame(app, &frame).unwrap()
+    subdivide(draw, arguments, &mut rng, 1, window);
 }
 
 fn subdivide(draw: &Draw, arguments: &Arguments, rng: &mut SmallRng, l: u32, r: Rect) {
