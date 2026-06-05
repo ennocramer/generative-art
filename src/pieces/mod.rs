@@ -1,5 +1,6 @@
 pub mod koch;
 pub mod noise;
+pub mod square_spirals;
 pub mod squares;
 
 #[derive(Clone, Debug)]
@@ -9,7 +10,7 @@ pub struct Piece {
     pub function: fn(&nannou::App, &crate::arguments::Arguments, nannou::Frame),
 }
 
-pub static ALL_PIECES: [Piece; 3] = [
+pub static ALL_PIECES: [Piece; 4] = [
     Piece {
         title: "koch",
         description: "Animated Koch snowflake",
@@ -24,5 +25,10 @@ pub static ALL_PIECES: [Piece; 3] = [
         title: "squares",
         description: "Noisy squares",
         function: squares::view,
+    },
+    Piece {
+        title: "square-spirals",
+        description: "Spirallig squares",
+        function: square_spirals::view,
     },
 ];
