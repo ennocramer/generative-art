@@ -1,6 +1,7 @@
 mod arguments;
 mod lsystem;
 mod pieces;
+mod texture;
 
 use self::arguments::*;
 use self::lsystem::*;
@@ -42,7 +43,20 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
         Command::Gallery(_) => unreachable!(),
     }
 
-    draw.to_frame(app, &frame).unwrap()
+    draw.to_frame(app, &frame).unwrap();
+
+    // Force waiting until drawing is complete.
+    //
+    // Hack to avoid texture ids being recycled too early. If
+    // temporary texture is created and dropped within a view
+    // function, it's texture id can be reused in the next iteration,
+    // before the previous incarnation is fully drawn. This can lead
+    // to one frame's texture content to show up in the previous
+    // frame's output.
+    //
+    // This does not prevent texture content leaking between textures
+    // if they are created and dropped in sequence within one frame.
+    app.main_window().device().poll(wgpu::Maintain::Wait);
 }
 
 fn view_lsystem(arguments: &Arguments, draw: &Draw, window: Rect, ls_arguments: &LSystemArguments) {

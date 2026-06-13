@@ -1,60 +1,54 @@
 use nannou::color::Gradient;
-use nannou::image::{DynamicImage, Rgb, RgbImage};
 use nannou::prelude::*;
+use nannou::wgpu::{Texture, WithDeviceQueuePair};
 use noise::{Fbm, NoiseFn, OpenSimplex, Perlin, SuperSimplex, Worley};
 
 use crate::arguments::Arguments;
+use crate::texture::create_texture;
 
 pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
     let w = window.w() as u32;
     let h = window.h() as u32;
 
-    let mut image = RgbImage::new(w, h);
-
-    render_noise(
+    let perlin = render_noise(
+        app,
         &Fbm::<Perlin>::new(arguments.seed),
         app.time as f64,
         DVec2::new(16.0, 16.0),
         UVec2::new(w / 2, h / 2),
-        UVec2::new(0, h / 2),
-        &mut image,
     );
 
-    render_noise(
+    let worley = render_noise(
+        app,
         &Fbm::<Worley>::new(arguments.seed),
         app.time as f64,
         DVec2::new(16.0, 16.0),
         UVec2::new(w / 2, h / 2),
-        UVec2::new(w / 2, h / 2),
-        &mut image,
     );
 
-    render_noise(
+    let opensimplex = render_noise(
+        app,
         &Fbm::<OpenSimplex>::new(arguments.seed),
         app.time as f64,
         DVec2::new(16.0, 16.0),
         UVec2::new(w / 2, h / 2),
-        UVec2::new(0, 0),
-        &mut image,
     );
 
-    render_noise(
+    let supersimplex = render_noise(
+        app,
         &Fbm::<SuperSimplex>::new(arguments.seed),
         app.time as f64,
         DVec2::new(16.0, 16.0),
         UVec2::new(w / 2, h / 2),
-        UVec2::new(w / 2, 0),
-        &mut image,
     );
 
-    let dyn_image = DynamicImage::ImageRgb8(image);
-    let texture = wgpu::Texture::from_image(&app.main_window(), &dyn_image);
-
-    draw.texture(&texture);
-
     let labels = ["Perlin", "Worley", "OpenSimplex", "SuperSimplex"];
+    let textures = [perlin, worley, opensimplex, supersimplex];
     let quadrants = window.subdivisions();
-    for (quadrant, label) in quadrants.into_iter().zip(labels) {
+    for ((quadrant, label), texture) in quadrants.into_iter().zip(labels).zip(&textures) {
+        draw.texture(&texture)
+            .wh(quadrant.pad(10.0).wh())
+            .xy(quadrant.xy());
         draw.text(label)
             .color(GOLDENROD)
             .font_size(24)
@@ -65,30 +59,17 @@ pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
     }
 }
 
-fn render_noise<N>(
-    noise: &N,
-    time: f64,
-    noise_area: DVec2,
-    image_area: UVec2,
-    image_offset: UVec2,
-    image: &mut RgbImage,
-) where
+fn render_noise<S, N>(src: S, noise: &N, time: f64, noise_area: DVec2, image_area: UVec2) -> Texture
+where
+    S: WithDeviceQueuePair,
     N: NoiseFn<f64, 3>,
 {
-    let gradient =
+    let gradient: Gradient<LinSrgb> =
         Gradient::new([NAVY, DODGERBLUE, ALICEBLUE].map(|c| c.into_format().into_linear()));
 
-    for x in 0..image_area[0] {
-        for y in 0..image_area[1] {
-            let pixel = UVec2::new(x, y);
-            let point = pixel.as_f64() / image_area.as_f64() * noise_area;
-            let value = noise.get(point.extend(time).into());
-            let rgb = Rgb(gradient
-                .get(value as f32 * 0.5 + 0.5)
-                .into_format::<u8>()
-                .into_components()
-                .into());
-            image.put_pixel(image_offset[0] + pixel[0], image_offset[1] + pixel[1], rgb)
-        }
-    }
+    create_texture(src, image_area, |pixel| {
+        let point = pixel.as_f64() / image_area.as_f64() * noise_area;
+        let value = noise.get(point.extend(time).into());
+        Srgb::from_linear(gradient.get(value as f32 * 0.5 + 0.5)).into_format()
+    })
 }
