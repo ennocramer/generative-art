@@ -6,9 +6,9 @@ use clap::builder::StyledStr;
 use clap::{Args, Parser, Subcommand};
 use nannou::{color::Rgb8, prelude::deg_to_rad};
 
-use crate::pieces::{ALL_PIECES, Piece};
+use crate::app::pieces::{ALL_PIECES, Piece};
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Arguments {
     #[arg(short, long)]
@@ -24,7 +24,7 @@ pub struct Arguments {
     pub command: Command,
 }
 
-#[derive(Args, Debug)]
+#[derive(Args, Clone, Debug)]
 pub struct GenericArguments {
     #[arg(short, long, default_value_t = 0xdeadbeef)]
     pub seed: u32,
@@ -36,14 +36,14 @@ pub struct GenericArguments {
     pub foreground: Rgb8,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Clone, Debug)]
 pub enum Command {
     LSystem(LSystemArguments),
     Piece(PieceArguments),
     Gallery(GalleryArguments),
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Clone, Debug)]
 pub struct LSystemArguments {
     #[arg(short, long)]
     pub axiom: String,
@@ -64,14 +64,14 @@ pub struct LSystemArguments {
     pub depth: u32,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[command(after_help=all_pieces())]
 pub struct PieceArguments {
     #[arg(value_parser=parse_piece)]
     pub piece: Piece,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Clone, Debug)]
 pub struct GalleryArguments {
     pub path: PathBuf,
 
