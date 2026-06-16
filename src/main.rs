@@ -6,7 +6,10 @@ mod texture;
 use nannou::event::{Event, Update};
 use nannou::{App, Frame};
 
-use self::app::{Application, lsystem::LSystemApplication, pieces::PieceApplication};
+use self::app::{
+    Application, lsystem::LSystemApplication, mandelbrot::MandelbrotApplication,
+    pieces::PieceApplication,
+};
 use self::arguments::*;
 
 struct Model {
@@ -23,6 +26,9 @@ fn model(app: &App) -> Model {
     let application: Box<dyn Application> = match &args.command {
         Command::LSystem(ls_arguments) => {
             LSystemApplication::new(app, args.generic.clone(), ls_arguments.clone())
+        }
+        Command::Mandelbrot(ls_arguments) => {
+            MandelbrotApplication::new(app, args.generic.clone(), ls_arguments.clone())
         }
         Command::Piece(piece_arguments) => {
             PieceApplication::new(app, args.generic.clone(), piece_arguments.piece.clone())

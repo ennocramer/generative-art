@@ -39,6 +39,7 @@ pub struct GenericArguments {
 #[derive(Subcommand, Clone, Debug)]
 pub enum Command {
     LSystem(LSystemArguments),
+    Mandelbrot(MandelbrotArguments),
     Piece(PieceArguments),
     Gallery(GalleryArguments),
 }
@@ -63,6 +64,9 @@ pub struct LSystemArguments {
     #[arg(short, long, default_value_t = 4)]
     pub depth: u32,
 }
+
+#[derive(Parser, Clone, Debug)]
+pub struct MandelbrotArguments {}
 
 #[derive(Parser, Clone, Debug)]
 #[command(after_help=all_pieces())]

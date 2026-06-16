@@ -1,4 +1,5 @@
 pub mod lsystem;
+pub mod mandelbrot;
 pub mod pieces;
 
 use nannou::event::{Update, WindowEvent};
