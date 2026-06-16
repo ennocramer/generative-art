@@ -16,7 +16,7 @@ fn model(app: &App) -> Arguments {
     if let Command::Gallery(gallery_arguments) = &args.command {
         std::fs::create_dir_all(&gallery_arguments.path)
             .expect("failed to create gallery directory");
-        render_gallery(app, &args, gallery_arguments);
+        render_gallery(app, &args.generic, gallery_arguments);
         app.quit()
     }
 
@@ -30,15 +30,17 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
         app.main_window().capture_frame(path)
     }
 
-    frame.clear(arguments.background);
+    frame.clear(arguments.generic.background);
 
     let draw = app.draw();
     let window = app.window_rect().pad(20.0);
 
     match &arguments.command {
-        Command::LSystem(ls_arguments) => view_lsystem(arguments, &draw, window, ls_arguments),
+        Command::LSystem(ls_arguments) => {
+            view_lsystem(&arguments.generic, &draw, window, ls_arguments)
+        }
         Command::Piece(piece_arguments) => {
-            (piece_arguments.piece.function)(app, arguments, &draw, window)
+            (piece_arguments.piece.function)(app, &arguments.generic, &draw, window)
         }
         Command::Gallery(_) => unreachable!(),
     }
@@ -59,7 +61,12 @@ fn view(app: &App, arguments: &Arguments, frame: Frame) {
     app.main_window().device().poll(wgpu::Maintain::Wait);
 }
 
-fn view_lsystem(arguments: &Arguments, draw: &Draw, window: Rect, ls_arguments: &LSystemArguments) {
+fn view_lsystem(
+    arguments: &GenericArguments,
+    draw: &Draw,
+    window: Rect,
+    ls_arguments: &LSystemArguments,
+) {
     let lsystem = LSystem::new()
         .axiom(&ls_arguments.axiom)
         .rules(&ls_arguments.rules)
@@ -82,7 +89,7 @@ fn view_lsystem(arguments: &Arguments, draw: &Draw, window: Rect, ls_arguments: 
     });
 }
 
-fn render_gallery(app: &App, arguments: &Arguments, gallery_arguments: &GalleryArguments) {
+fn render_gallery(app: &App, arguments: &GenericArguments, gallery_arguments: &GalleryArguments) {
     let window = app.main_window();
     let device = window.device();
 

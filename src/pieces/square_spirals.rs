@@ -3,14 +3,14 @@ use nannou::geom::Quad;
 use nannou::prelude::*;
 use nannou::rand::rand::{RngCore, SeedableRng, rngs::SmallRng};
 
-use crate::arguments::Arguments;
+use crate::arguments::GenericArguments;
 
-pub fn view(_app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
+pub fn view(_app: &App, arguments: &GenericArguments, draw: &Draw, window: Rect) {
     let mut rng = SmallRng::seed_from_u64(arguments.seed as u64);
     subdivide(draw, arguments, &mut rng, 1, window);
 }
 
-fn subdivide(draw: &Draw, arguments: &Arguments, rng: &mut SmallRng, l: u32, r: Rect) {
+fn subdivide(draw: &Draw, arguments: &GenericArguments, rng: &mut SmallRng, l: u32, r: Rect) {
     r.subdivisions().iter().for_each(|s| {
         if rng.next_u32().is_multiple_of(l) {
             subdivide(draw, arguments, rng, l * 2, *s)
@@ -20,7 +20,7 @@ fn subdivide(draw: &Draw, arguments: &Arguments, rng: &mut SmallRng, l: u32, r: 
     })
 }
 
-fn spiral(draw: &Draw, arguments: &Arguments, l: u32, r: Rect) {
+fn spiral(draw: &Draw, arguments: &GenericArguments, l: u32, r: Rect) {
     let line_width = 1.0;
 
     let gradient = {

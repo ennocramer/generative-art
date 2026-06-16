@@ -3,7 +3,7 @@ use std::error::Error;
 use std::path::PathBuf;
 
 use clap::builder::StyledStr;
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 use nannou::{color::Rgb8, prelude::deg_to_rad};
 
 use crate::pieces::{ALL_PIECES, Piece};
@@ -11,23 +11,29 @@ use crate::pieces::{ALL_PIECES, Piece};
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Arguments {
-    #[arg(short, long, default_value_t = 0xdeadbeef)]
-    pub seed: u32,
-
     #[arg(short, long)]
     pub capture: Option<PathBuf>,
 
     #[arg(long, default_value_t = 0)]
     pub capture_frame: u64,
 
+    #[command(flatten)]
+    pub generic: GenericArguments,
+
+    #[command(subcommand)]
+    pub command: Command,
+}
+
+#[derive(Args, Debug)]
+pub struct GenericArguments {
+    #[arg(short, long, default_value_t = 0xdeadbeef)]
+    pub seed: u32,
+
     #[arg(long, value_parser=parse_color, default_value="darkslategray")]
     pub background: Rgb8,
 
     #[arg(long, value_parser=parse_color, default_value="lightblue")]
     pub foreground: Rgb8,
-
-    #[command(subcommand)]
-    pub command: Command,
 }
 
 #[derive(Subcommand, Debug)]
@@ -58,6 +64,21 @@ pub struct LSystemArguments {
     pub depth: u32,
 }
 
+#[derive(Parser, Debug)]
+#[command(after_help=all_pieces())]
+pub struct PieceArguments {
+    #[arg(value_parser=parse_piece)]
+    pub piece: Piece,
+}
+
+#[derive(Parser, Debug)]
+pub struct GalleryArguments {
+    pub path: PathBuf,
+
+    #[arg(short, long, value_parser=parse_resolution, default_value="512x512")]
+    pub resolution: (u32, u32),
+}
+
 fn all_pieces() -> StyledStr {
     let styles = clap::builder::Styles::styled();
     let mut text = StyledStr::new();
@@ -80,21 +101,6 @@ fn all_pieces() -> StyledStr {
         .unwrap();
     });
     text
-}
-
-#[derive(Parser, Debug)]
-#[command(after_help=all_pieces())]
-pub struct PieceArguments {
-    #[arg(value_parser=parse_piece)]
-    pub piece: Piece,
-}
-
-#[derive(Parser, Debug)]
-pub struct GalleryArguments {
-    pub path: PathBuf,
-
-    #[arg(short, long, value_parser=parse_resolution, default_value="512x512")]
-    pub resolution: (u32, u32),
 }
 
 fn parse_color(s: &str) -> Result<Rgb8, Box<dyn Error + Send + Sync + 'static>> {

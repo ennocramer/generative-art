@@ -2,9 +2,9 @@ use nannou::color::{Gradient, Lch};
 use nannou::prelude::*;
 use noise::{NoiseFn, SuperSimplex};
 
-use crate::arguments::Arguments;
+use crate::arguments::GenericArguments;
 
-pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
+pub fn view(app: &App, arguments: &GenericArguments, draw: &Draw, window: Rect) {
     let target = window.wh().min_element() / 25.0;
     let num_rects = (window.wh() / target).as_i32();
     let square_size = window.wh() / num_rects.as_f32();

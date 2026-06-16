@@ -9,7 +9,7 @@ pub struct Piece {
     pub description: &'static str,
     pub function: fn(
         app: &nannou::App,
-        arguments: &crate::arguments::Arguments,
+        arguments: &crate::arguments::GenericArguments,
         draw: &nannou::Draw,
         window: nannou::geom::Rect,
     ),

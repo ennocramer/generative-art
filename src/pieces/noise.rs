@@ -3,10 +3,10 @@ use nannou::prelude::*;
 use nannou::wgpu::{Texture, WithDeviceQueuePair};
 use noise::{Fbm, NoiseFn, OpenSimplex, Perlin, SuperSimplex, Worley};
 
-use crate::arguments::Arguments;
+use crate::arguments::GenericArguments;
 use crate::texture::create_texture;
 
-pub fn view(app: &App, arguments: &Arguments, draw: &Draw, window: Rect) {
+pub fn view(app: &App, arguments: &GenericArguments, draw: &Draw, window: Rect) {
     let w = window.w() as u32;
     let h = window.h() as u32;
 
